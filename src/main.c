@@ -28,25 +28,26 @@ int
 main(int argc, char **argv)
 {
     struct settings settings = default_settings;
+    char *source = NULL;
+    int retcode = 1;
 
     if (parse_options(argc, argv, &settings) == -1) {
         fprintf(stderr, "use --help to see usage\n");
-        return 1;
+        goto cleanup;
     }
 
     if (settings.title == NULL) {
         settings.title = settings.filename;
     }
 
-    char *source_buf;
-    size_t source_len;
-    if (load_file(settings.filename, &source_buf, &source_len) == -1) {
-        return 1;
+    size_t source_size;
+    if (load_file(settings.filename, &source, &source_size) == -1) {
+        goto cleanup;
     }
-    settings.source = source_buf;
+    settings.source = source;
 
     if (load_settings(settings.source, &settings) == -1) {
-        return 1;
+        goto cleanup;
     }
 
     if (parse_options(argc, argv, &settings) == -1) {
@@ -54,10 +55,15 @@ main(int argc, char **argv)
     }
 
     if (run(&settings) == -1) {
-        return 1;
+        goto cleanup;
     }
 
-    return 0;
+    retcode = 0;
+
+cleanup:
+    free(source);
+
+    return retcode;
 }
 
 /*

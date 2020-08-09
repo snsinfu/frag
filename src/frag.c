@@ -4,6 +4,8 @@
 
 #include <GLFW/glfw3.h>
 
+#include "scene.h"
+
 
 enum {
     minimum_opengl_major = 3,
@@ -17,6 +19,8 @@ static void handle_keys(GLFWwindow *window, int key, int scancode, int action, i
 int
 run(const struct settings *settings)
 {
+    // Create window.
+
     if (!glfwInit()) {
         fprintf(stderr, "error: failed to initialize GLFW\n");
         return -1;
@@ -42,13 +46,23 @@ run(const struct settings *settings)
 
     glfwMakeContextCurrent(window);
 
+    // Create scene.
+
     printf("OpenGL: %s\n", glGetString(GL_VERSION));
 
-    glClear(GL_COLOR_BUFFER_BIT);
-    double prev_time = glfwGetTime();
+    struct scene scene;
 
+    if (scene_create(&scene, settings) == -1) {
+        return -1;
+    }
+
+    // Rendering loop.
+
+    glClear(GL_COLOR_BUFFER_BIT);
     glfwSetKeyCallback(window, handle_keys);
     glfwShowWindow(window);
+
+    double prev_time = glfwGetTime();
 
     while (!glfwWindowShouldClose(window)) {
         double cur_time = glfwGetTime();
@@ -56,6 +70,8 @@ run(const struct settings *settings)
 
         if (delay * settings->fps >= 1) {
             prev_time = cur_time;
+
+            scene_render(&scene);
 
             glfwSwapBuffers(window);
         }
@@ -65,6 +81,8 @@ run(const struct settings *settings)
 
     glfwDestroyWindow(window);
     glfwTerminate();
+
+    scene_cleanup(&scene);
 
     return 0;
 }

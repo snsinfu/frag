@@ -14,6 +14,8 @@ add_executable(
     src/main.c
     src/frag.c
     src/frag.h
+    src/scene.c
+    src/scene.h
     src/source.c
     src/source.h
 )
