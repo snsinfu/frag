@@ -7,13 +7,14 @@
 #include <getopt.h>
 
 #include "frag.h"
+#include "source.h"
 
 
 static const struct settings default_settings = {
     .width = 500,
     .height = 500,
     .scale = 1.0,
-    .fps = 60.0,
+    .fps = 60.0
 };
 
 static void show_usage(void);
@@ -30,12 +31,33 @@ main(int argc, char **argv)
 
     if (parse_options(argc, argv, &settings) == -1) {
         fprintf(stderr, "use --help to see usage\n");
-        exit(EXIT_FAILURE);
+        return 1;
     }
 
-    if (run_frag(&settings) == -1) {
-        exit(EXIT_FAILURE);
+    if (settings.title == NULL) {
+        settings.title = settings.filename;
     }
+
+    char *source_buf;
+    size_t source_len;
+    if (load_file(settings.filename, &source_buf, &source_len) == -1) {
+        return 1;
+    }
+    settings.source = source_buf;
+
+    if (load_settings(settings.source, &settings) == -1) {
+        return 1;
+    }
+
+    if (parse_options(argc, argv, &settings) == -1) {
+        assert(0);
+    }
+
+    if (run(&settings) == -1) {
+        return 1;
+    }
+
+    return 0;
 }
 
 /*

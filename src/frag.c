@@ -1,87 +1,79 @@
 #include "frag.h"
 
-#include <errno.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+
+#include <GLFW/glfw3.h>
 
 
-static int load_file(const char *filename, char **pbuf, size_t *psize);
+enum {
+    minimum_opengl_major = 3,
+    minimum_opengl_minor = 3,
+};
+
+
+static void handle_keys(GLFWwindow *window, int key, int scancode, int action, int mods);
 
 
 int
-run_frag(const struct settings *settings)
+run(const struct settings *settings)
 {
-    char *source;
-    size_t source_size;
-
-    if (load_file(settings->filename, &source, &source_size) == -1) {
+    if (!glfwInit()) {
+        fprintf(stderr, "error: failed to initialize GLFW\n");
         return -1;
     }
 
-    free(source);
+    glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, minimum_opengl_major);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, minimum_opengl_minor);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
+
+    int viewport_width = (int) (settings->width * settings->scale);
+    int viewport_height = (int) (settings->height * settings->scale);
+
+    GLFWwindow *window = glfwCreateWindow(
+        viewport_width, viewport_height, settings->title, NULL, NULL
+    );
+    if (window == NULL) {
+        fprintf(stderr, "error: failed to create window\n");
+        return -1;
+    }
+
+    glfwMakeContextCurrent(window);
+
+    printf("OpenGL: %s\n", glGetString(GL_VERSION));
+
+    glClear(GL_COLOR_BUFFER_BIT);
+    double prev_time = glfwGetTime();
+
+    glfwSetKeyCallback(window, handle_keys);
+    glfwShowWindow(window);
+
+    while (!glfwWindowShouldClose(window)) {
+        double cur_time = glfwGetTime();
+        double delay = cur_time - prev_time;
+
+        if (delay * settings->fps >= 1) {
+            prev_time = cur_time;
+
+            glfwSwapBuffers(window);
+        }
+
+        glfwPollEvents();
+    }
+
+    glfwDestroyWindow(window);
+    glfwTerminate();
 
     return 0;
 }
 
-/*
- * Loads file into a newly allocated buffer. The returned buffer is always
- * nul-terminated. Returns -1 on error.
- */
-static int
-load_file(const char *filename, char **pbuf, size_t *psize)
+
+static void
+handle_keys(GLFWwindow *window, int key, int scancode, int action, int mods)
 {
-    FILE *file = NULL;
-    char *buf = NULL;
-    int retcode = -1;
-
-    file = fopen(filename, "r");
-    if (file == NULL) {
-        fprintf(stderr, "error: failed to open file - %s\n", strerror(errno));
-        goto cleanup;
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
+        glfwSetWindowShouldClose(window, GL_TRUE);
     }
-
-    size_t cap = 4096;
-    size_t size = 0;
-
-    buf = malloc(cap + 1);
-    if (buf == NULL) {
-        fprintf(stderr, "error: failed to allocate memory\n");
-        goto cleanup;
-    }
-
-    for (;;) {
-        size_t nread = fread(buf, 1, cap - size, file);
-        size += nread;
-
-        if (nread < cap - size) {
-            if (feof(file)) {
-                break;
-            }
-            fprintf(stderr, "error: failed to read from file - %s\n", strerror(errno));
-            goto cleanup;
-        }
-
-        if (size == cap) {
-            cap *= 2;
-            void *newbuf = realloc(buf, cap + 1);
-            if (newbuf == NULL) {
-                fprintf(stderr, "error: failed to allocate memory\n");
-                goto cleanup;
-            }
-            buf = newbuf;
-        }
-    }
-
-    buf[size] = '\0';
-    *pbuf = buf;
-    *psize = size;
-    retcode = 0;
-    buf = NULL; // Do not free.
-
-cleanup:
-    fclose(file);
-    free(buf);
-
-    return retcode;
 }

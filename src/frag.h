@@ -8,6 +8,7 @@ struct settings {
     double fps;
     const char *title;
     const char *filename;
+    const char *source;
 };
 
-int run_frag(const struct settings *settings);
+int run(const struct settings *settings);
