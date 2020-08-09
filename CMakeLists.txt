@@ -1,4 +1,6 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.8)
+cmake_policy(VERSION 3.8...3.11)
+
 project(frag)
 
 set(CMAKE_C_STANDARD 11)
