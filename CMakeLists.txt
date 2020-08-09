@@ -23,3 +23,4 @@ target_link_libraries(frag OpenGL::GL glfw)
 
 # OpenGL is deprecated in macOS Mojave and later.
 add_compile_definitions(GL_SILENCE_DEPRECATION)
+add_compile_definitions(GLFW_INCLUDE_GLCOREARB)

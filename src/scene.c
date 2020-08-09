@@ -1,7 +1,5 @@
 #include "scene.h"
 
-#include <OpenGL/gl3.h>
-
 
 static const char *noop_vertex_source =
     "#core 330\n"
