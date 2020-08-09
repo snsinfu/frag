@@ -6,17 +6,10 @@
 
 #include <getopt.h>
 
+#include "frag.h"
 
-struct options {
-    int width;
-    int height;
-    double scale;
-    double fps;
-    const char *title;
-    const char *filename;
-};
 
-static const struct options default_options = {
+static const struct settings default_settings = {
     .width = 500,
     .height = 500,
     .scale = 1.0,
@@ -24,32 +17,30 @@ static const struct options default_options = {
 };
 
 static void show_usage(void);
-static int parse_options(int argc, char **argv, struct options *options);
+static int parse_options(int argc, char **argv, struct settings *settings);
 static int parse_size(const char *str, int *width, int *height);
 static int parse_scale(const char *str, double *scale);
 static int parse_fps(const char *str, double *fps);
-static int load_file(const char *filename, char **buf, size_t *size);
 
 
 int
 main(int argc, char **argv)
 {
-    struct options options = default_options;
+    struct settings settings = default_settings;
 
-    if (parse_options(argc, argv, &options) == -1) {
+    if (parse_options(argc, argv, &settings) == -1) {
         fprintf(stderr, "use --help to see usage\n");
         exit(EXIT_FAILURE);
     }
 
-    char *source;
-    size_t source_len;
-    if (load_file(options.filename, &source, &source_len) == -1) {
+    if (run_frag(&settings) == -1) {
         exit(EXIT_FAILURE);
     }
-
-    free(source);
 }
 
+/*
+ * Prints command-line usage to stdout.
+ */
 static void
 show_usage(void)
 {
@@ -58,7 +49,7 @@ show_usage(void)
         "\n"
         "  <source>  filename of fragment shader source code\n"
         "\n"
-        "options:\n"
+        "settings:\n"
         "  -s, --size <width>,<height>  surface size\n"
         "  -x, --scale <scale>          display scale\n"
         "  -f, --fps <fps>              frames per second\n"
@@ -69,8 +60,11 @@ show_usage(void)
     fputs(usage, stdout);
 }
 
+/*
+ * Parses command-line options to fill settings. Returns -1 on error.
+ */
 static int
-parse_options(int argc, char **argv, struct options *options)
+parse_options(int argc, char **argv, struct settings *settings)
 {
     static const struct option longopts[] = {
         { "size", required_argument, NULL, 's' },
@@ -84,25 +78,25 @@ parse_options(int argc, char **argv, struct options *options)
     for (int opt; (opt = getopt_long(argc, argv, shortopts, longopts, NULL)) != -1; ) {
         switch (opt) {
         case 's':
-            if (parse_size(optarg, &options->width, &options->height) == -1) {
+            if (parse_size(optarg, &settings->width, &settings->height) == -1) {
                 return -1;
             }
             break;
 
         case 'x':
-            if (parse_scale(optarg, &options->scale) == -1) {
+            if (parse_scale(optarg, &settings->scale) == -1) {
                 return -1;
             }
             break;
 
         case 'f':
-            if (parse_fps(optarg, &options->fps) == -1) {
+            if (parse_fps(optarg, &settings->fps) == -1) {
                 return -1;
             }
             break;
 
         case 't':
-            options->title = optarg;
+            settings->title = optarg;
             break;
 
         case 'h':
@@ -118,15 +112,18 @@ parse_options(int argc, char **argv, struct options *options)
     argv += optind;
 
     if (argc != 1) {
-        fprintf(stderr, "missing <source> argument\n");
+        fprintf(stderr, "error: missing <source> argument\n");
         return -1;
     }
 
-    options->filename = argv[0];
+    settings->filename = argv[0];
 
     return 0;
 }
 
+/*
+ * Parses --size argument. Returns -1 on error.
+ */
 static int
 parse_size(const char *str, int *width, int *height)
 {
@@ -134,18 +131,21 @@ parse_size(const char *str, int *width, int *height)
     assert(height);
 
     if (sscanf(str, "%d,%d", width, height) != 2) {
-        fprintf(stderr, "bad size argument\n");
+        fprintf(stderr, "error: bad size argument\n");
         return -1;
     }
 
     if (*width <= 0 || *height <= 0) {
-        fprintf(stderr, "width and height must be positive\n");
+        fprintf(stderr, "error: width and height must be positive\n");
         return -1;
     }
 
     return 0;
 }
 
+/*
+ * Parses --scale arguemnt. Returns -1 on error.
+ */
 static int
 parse_scale(const char *str, double *scale)
 {
@@ -156,18 +156,21 @@ parse_scale(const char *str, double *scale)
     *scale = strtod(str, &end);
 
     if (errno != 0 || *end != '\0') {
-        fprintf(stderr, "bad scale argument\n");
+        fprintf(stderr, "error: bad scale argument\n");
         return -1;
     }
 
     if (*scale <= 0) {
-        fprintf(stderr, "scale must be positive\n");
+        fprintf(stderr, "error: scale must be positive\n");
         return -1;
     }
 
     return 0;
 }
 
+/*
+ * Parses --fps argument. Returns -1 on error.
+ */
 static int
 parse_fps(const char *str, double *fps)
 {
@@ -178,72 +181,14 @@ parse_fps(const char *str, double *fps)
     *fps = strtod(str, &end);
 
     if (errno != 0 || *end != '\0') {
-        fprintf(stderr, "bad fps argument\n");
+        fprintf(stderr, "error: bad fps argument\n");
         return -1;
     }
 
     if (*fps <= 0) {
-        fprintf(stderr, "fps must be positive\n");
+        fprintf(stderr, "error: fps must be positive\n");
         return -1;
     }
 
     return 0;
-}
-
-static int
-load_file(const char *filename, char **pbuf, size_t *psize)
-{
-    FILE *file = NULL;
-    char *buf = NULL;
-    int retcode = -1;
-
-    file = fopen(filename, "r");
-    if (file == NULL) {
-        fprintf(stderr, "error: failed to open file - %s\n", strerror(errno));
-        goto cleanup;
-    }
-
-    size_t cap = 4096;
-    size_t size = 0;
-
-    buf = malloc(cap + 1);
-    if (buf == NULL) {
-        fprintf(stderr, "error: failed to allocate memory\n");
-        goto cleanup;
-    }
-
-    for (;;) {
-        size_t nread = fread(buf, 1, cap - size, file);
-        size += nread;
-
-        if (nread < cap - size) {
-            if (feof(file)) {
-                break;
-            }
-            fprintf(stderr, "error: failed to read from file - %s\n", strerror(errno));
-            goto cleanup;
-        }
-
-        if (size == cap) {
-            cap *= 2;
-            void *newbuf = realloc(buf, cap + 1);
-            if (newbuf == NULL) {
-                fprintf(stderr, "error: failed to allocate memory\n");
-                goto cleanup;
-            }
-            buf = newbuf;
-        }
-    }
-
-    buf[size] = '\0';
-    *pbuf = buf;
-    *psize = size;
-    retcode = 0;
-    buf = NULL; // Do not free.
-
-cleanup:
-    fclose(file);
-    free(buf);
-
-    return retcode;
 }

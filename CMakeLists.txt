@@ -9,7 +9,12 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 find_package(OpenGL REQUIRED)
 find_package(glfw3 REQUIRED)
 
-add_executable(frag src/main.c)
+add_executable(
+    frag
+    src/main.c
+    src/frag.c
+    src/frag.h
+)
 target_link_libraries(frag OpenGL::GL glfw)
 
 # OpenGL is deprecated in macOS Mojave and later.
