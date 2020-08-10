@@ -16,6 +16,8 @@ add_executable(
     src/frag.h
     src/scene.c
     src/scene.h
+    src/shader.c
+    src/shader.h
     src/source.c
     src/source.h
 )
