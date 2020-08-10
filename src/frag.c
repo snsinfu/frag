@@ -82,12 +82,57 @@ run(const struct settings *settings)
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(0);
 
+    // Framebuffer and associated texture
+
+    GLuint framebuffer;
+    glGenFramebuffers(1, &framebuffer);
+    if (framebuffer == 0) {
+        fprintf(stderr, "error: failed to create framebuffer\n");
+        return -1;
+    }
+
+    GLuint framebuffer_tex;
+    glGenTextures(1, &framebuffer_tex);
+    if (framebuffer_tex == 0) {
+        fprintf(stderr, "error: failed to create texture\n");
+        return -1;
+    }
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, framebuffer_tex);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, settings->width, settings->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, framebuffer_tex, 0);
+
+    static const GLuint user_shader_outputs[] = {
+        GL_COLOR_ATTACHMENT0
+    };
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+    glDrawBuffers(1, user_shader_outputs);
+
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        fprintf(stderr, "error: failed to set up framebuffer\n");
+        return -1;
+    }
+
     // Shader
 
     static const char *vert_shader =
         "#version 330\n"
         "in vec3 vertex;\n"
         "void main() { gl_Position = vec4(vertex, 1); }\n";
+
+    static const char *view_shader =
+        "#version 330\n"
+        "uniform sampler2D sampler;\n"
+        "uniform vec2 resolution;\n"
+        "out vec4 fragColor;\n"
+        "void main() {\n"
+        "    fragColor = texture(sampler, gl_FragCoord.xy / resolution);\n"
+        "}\n";
 
     static const char *const vert_inputs[] = {
         "vertex", NULL
@@ -97,16 +142,32 @@ run(const struct settings *settings)
         "fragColor", NULL
     };
 
-    GLuint program;
-    if (create_program(&program, vert_shader, settings->source, vert_inputs, frag_outputs) == -1) {
+    GLuint user_program;
+    if (create_program(&user_program, vert_shader, settings->source, vert_inputs, frag_outputs) == -1) {
+        return -1;
+    }
+
+    GLuint view_program;
+    if (create_program(&view_program, vert_shader, view_shader, vert_inputs, frag_outputs) == -1) {
         return -1;
     }
 
     // Uniforms
 
-    glUseProgram(program);
+    glUseProgram(user_program);
     glUniform2f(
-        glGetUniformLocation(program, "resolution"),
+        glGetUniformLocation(user_program, "resolution"),
+        (float) settings->width,
+        (float) settings->height
+    );
+
+    glUseProgram(view_program);
+    glUniform1i(
+        glGetUniformLocation(view_program, "sampler"),
+        0
+    );
+    glUniform2f(
+        glGetUniformLocation(view_program, "resolution"),
         (float) viewport_width,
         (float) viewport_height
     );
@@ -126,8 +187,18 @@ run(const struct settings *settings)
         if (delay * settings->fps >= 1) {
             prev_time = cur_time;
 
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, framebuffer_tex);
+
+            glViewport(0, 0, settings->width, settings->height);
+            glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+            glUseProgram(user_program);
+            glBindVertexArray(vao);
+            glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
             glViewport(0, 0, viewport_width, viewport_height);
-            glUseProgram(program);
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            glUseProgram(view_program);
             glBindVertexArray(vao);
             glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 

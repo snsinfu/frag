@@ -11,9 +11,9 @@
 
 
 static const struct settings default_settings = {
-    .width = 500,
-    .height = 500,
-    .scale = 1.0,
+    .width = 15,
+    .height = 15,
+    .scale = 40.0,
     .fps = 60.0
 };
 
