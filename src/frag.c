@@ -25,7 +25,6 @@ run(const struct settings *settings)
     }
 
     glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, minimum_opengl_major);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, minimum_opengl_minor);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -155,6 +154,10 @@ run(const struct settings *settings)
     // Uniforms
 
     glUseProgram(user_program);
+    glUniform1i(
+        glGetUniformLocation(user_program, "sampler"),
+        0
+    );
     glUniform2f(
         glGetUniformLocation(user_program, "resolution"),
         (float) settings->width,
