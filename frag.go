@@ -102,6 +102,7 @@ func (f *Frag) Run() error {
 	if err != nil {
 		return err
 	}
+	defer gl.DeleteProgram(program)
 
 	// Main loop
 
