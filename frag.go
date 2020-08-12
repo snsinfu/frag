@@ -161,6 +161,17 @@ func (f *Frag) Run() error {
 
 	// Uniforms
 
+	gl.UseProgram(userProgram)
+	gl.Uniform2f(
+		gl.GetUniformLocation(userProgram, gl.Str("resolution\x00")),
+		float32(f.Width),
+		float32(f.Height),
+	)
+	gl.Uniform1i(
+		gl.GetUniformLocation(userProgram, gl.Str("sampler\x00")),
+		0,
+	)
+
 	gl.UseProgram(viewProgram)
 	gl.Uniform1i(
 		gl.GetUniformLocation(userProgram, gl.Str("sampler\x00")),
@@ -190,6 +201,14 @@ func (f *Frag) Run() error {
 
 			gl.Viewport(0, 0, int32(f.Width), int32(f.Height))
 			gl.UseProgram(userProgram)
+			gl.Uniform1i(
+				gl.GetUniformLocation(userProgram, gl.Str("frame\x00")),
+				int32(frame),
+			)
+			gl.Uniform1f(
+				gl.GetUniformLocation(userProgram, gl.Str("time\x00")),
+				float32(curTime),
+			)
 			gl.BindTexture(gl.TEXTURE_2D, framebufferTex[frame%2])
 			gl.BindFramebuffer(gl.FRAMEBUFFER, framebuffer[(frame+1)%2])
 			gl.BindVertexArray(vao)
