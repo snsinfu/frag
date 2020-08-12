@@ -47,9 +47,6 @@ func parsePragma(source string, frag *frag.Frag) error {
 			}
 			frag.WrapMode = mode
 
-		case "noresize":
-			frag.NoResize = true
-
 		default:
 		}
 	}
