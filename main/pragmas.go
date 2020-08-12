@@ -25,7 +25,6 @@ func parsePragma(source string, frag *frag.Frag) error {
 			}
 			frag.Width = w
 			frag.Height = h
-			break
 
 		case "scale":
 			scale, err := parseScale(value)
@@ -33,7 +32,6 @@ func parsePragma(source string, frag *frag.Frag) error {
 				return err
 			}
 			frag.Scale = scale
-			break
 
 		case "fps":
 			fps, err := parseFPS(value)
@@ -41,7 +39,6 @@ func parsePragma(source string, frag *frag.Frag) error {
 				return err
 			}
 			frag.FPS = fps
-			break
 
 		case "wrap":
 			mode, err := parseWrapMode(value)
@@ -49,11 +46,9 @@ func parsePragma(source string, frag *frag.Frag) error {
 				return err
 			}
 			frag.WrapMode = mode
-			break
 
 		case "noresize":
 			frag.NoResize = true
-			break
 
 		default:
 		}
