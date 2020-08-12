@@ -174,7 +174,7 @@ func (f *Frag) Run() error {
 
 	gl.UseProgram(viewProgram)
 	gl.Uniform1i(
-		gl.GetUniformLocation(userProgram, gl.Str("sampler\x00")),
+		gl.GetUniformLocation(viewProgram, gl.Str("sampler\x00")),
 		0,
 	)
 
