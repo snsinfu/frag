@@ -74,7 +74,7 @@ func parseFPS(s string) (float64, error) {
 	return fps, nil
 }
 
-func parseWrapMode(s string) (frag.Wrap, error) {
+func parseWrapMode(s string) (int32, error) {
 	switch s {
 	case "repeat":
 		return frag.WrapRepeat, nil
