@@ -19,6 +19,7 @@ type Frag struct {
 const (
 	WrapRepeat = gl.REPEAT
 	WrapMirror = gl.MIRRORED_REPEAT
+	WrapClamp  = gl.CLAMP_TO_EDGE
 )
 
 const (

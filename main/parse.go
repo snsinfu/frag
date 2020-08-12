@@ -81,6 +81,9 @@ func parseWrapMode(s string) (int32, error) {
 
 	case "mirror":
 		return frag.WrapMirror, nil
+
+	case "clamp":
+		return frag.WrapClamp, nil
 	}
 
 	return 0, errWrapMode
