@@ -40,7 +40,6 @@ type SceneConfig struct {
 	ViewportSize Size
 	WrapMode     int32
 	FragShader   string
-	InitImage    []byte
 }
 
 type Scene struct {
@@ -117,6 +116,7 @@ func (s *Scene) initFramebuffer(c SceneConfig) error {
 
 	for i := 0; i < len(s.canvasTex); i++ {
 		gl.BindTexture(gl.TEXTURE_2D, s.canvasTex[i])
+
 		gl.TexImage2D(
 			gl.TEXTURE_2D,
 			0,
@@ -128,6 +128,7 @@ func (s *Scene) initFramebuffer(c SceneConfig) error {
 			gl.UNSIGNED_BYTE,
 			nil,
 		)
+
 		gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
 		gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
 		gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, c.WrapMode)
