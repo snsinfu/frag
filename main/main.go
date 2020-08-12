@@ -20,6 +20,7 @@ options:
   -x, --scale <scale>  Display scale of the canvas
   -f, --fps <fps>      Maximum number of frames per second
   -w, --wrap <mode>    Wrap mode (repeat or mirror)
+  --noresize           Do not allow resizing window
   -h, --help           Print usage message and exit
 `
 
@@ -107,6 +108,11 @@ func run() error {
 		}
 
 		frag.WrapMode = wrapMode
+	}
+
+	frag.NoResize, err = opts.Bool("--noresize")
+	if err != nil {
+		return err
 	}
 
 	return frag.Run()

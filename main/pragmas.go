@@ -51,6 +51,10 @@ func parsePragma(source string, frag *frag.Frag) error {
 			frag.WrapMode = mode
 			break
 
+		case "noresize":
+			frag.NoResize = true
+			break
+
 		default:
 		}
 	}

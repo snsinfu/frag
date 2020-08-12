@@ -15,6 +15,7 @@ type Frag struct {
 	WrapMode int32
 	Filename string
 	Source   string
+	NoResize bool
 }
 
 const (
@@ -63,6 +64,10 @@ func (f *Frag) Run() error {
 	glfw.WindowHint(glfw.ContextVersionMinor, openGLMajor)
 	glfw.WindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile)
 	glfw.WindowHint(glfw.OpenGLForwardCompatible, glfw.True)
+
+	if f.NoResize {
+		glfw.WindowHint(glfw.Resizable, glfw.False)
+	}
 
 	windowWidth := int(float64(f.Width) * f.Scale)
 	windowHeight := int(float64(f.Height) * f.Scale)
@@ -114,7 +119,7 @@ func (f *Frag) Run() error {
 
 	gl.ActiveTexture(gl.TEXTURE0)
 
-	for i := 0; i < 2; i++ {
+	for i := 0; i < len(framebufferTex); i++ {
 		gl.BindTexture(gl.TEXTURE_2D, framebufferTex[i])
 		gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA, int32(f.Width), int32(f.Height), 0, gl.RGBA, gl.UNSIGNED_BYTE, nil)
 		gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
@@ -126,7 +131,7 @@ func (f *Frag) Run() error {
 	gl.GenFramebuffers(2, &framebuffer[0])
 	defer gl.DeleteFramebuffers(2, &framebuffer[0])
 
-	for i := 0; i < 2; i++ {
+	for i := 0; i < len(framebuffer); i++ {
 		gl.BindFramebuffer(gl.FRAMEBUFFER, framebuffer[i])
 		gl.FramebufferTexture(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, framebufferTex[i], 0)
 
