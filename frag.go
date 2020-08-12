@@ -198,6 +198,13 @@ func (f *Frag) Run() error {
 		if delay*f.FPS >= 1 {
 			prevTime = curTime
 			viewportWidth, viewportHeight = window.GetFramebufferSize()
+			windowWidth, windowHeight := window.GetSize()
+
+			// Need to flip y coordinates.
+			mouseX, mouseY := window.GetCursorPos()
+			mouseY = float64(windowHeight) - mouseY
+			mouseX *= float64(f.Width) / float64(windowWidth)
+			mouseY *= float64(f.Height) / float64(windowHeight)
 
 			gl.Viewport(0, 0, int32(f.Width), int32(f.Height))
 			gl.UseProgram(userProgram)
@@ -208,6 +215,11 @@ func (f *Frag) Run() error {
 			gl.Uniform1f(
 				gl.GetUniformLocation(userProgram, gl.Str("time\x00")),
 				float32(curTime),
+			)
+			gl.Uniform2f(
+				gl.GetUniformLocation(userProgram, gl.Str("mouse\x00")),
+				float32(mouseX),
+				float32(mouseY),
 			)
 			gl.BindTexture(gl.TEXTURE_2D, framebufferTex[frame%2])
 			gl.BindFramebuffer(gl.FRAMEBUFFER, framebuffer[(frame+1)%2])
