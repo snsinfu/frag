@@ -8,6 +8,8 @@ import (
 
 const pragmaPrefix = "#pragma frag:"
 
+// parsePragma scans GLSL source code and extracts `Frag` settings from
+// recognizable `#pragma` directives.
 func parsePragma(source string, frag *frag.Frag) error {
 	for _, line := range strings.Split(source, "\n") {
 		pragma, ok := scanPrefix(line, pragmaPrefix)
@@ -72,5 +74,4 @@ func splitOnce(s string) (string, string) {
 	}
 
 	return "", s
-
 }

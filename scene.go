@@ -6,6 +6,7 @@ import (
 	"github.com/go-gl/gl/v3.3-core/gl"
 )
 
+// Vertex shader for rendering a 2D quad to the whole viewport.
 const vertSource = `
 #version 330
 
@@ -18,6 +19,7 @@ void main() {
 }
 `
 
+// Fragment shader for displaying texture on a quad.
 const viewSource = `
 #version 330
 
@@ -30,19 +32,22 @@ void main() {
 }
 `
 
-type Size struct {
+// A size contains the pixel dimension of a rectangular image.
+type size struct {
 	X int
 	Y int
 }
 
-type SceneConfig struct {
-	CanvasSize   Size
-	ViewportSize Size
+// A sceneConfig specifies a scene to be rendered.
+type sceneConfig struct {
+	CanvasSize   size
+	ViewportSize size
 	WrapMode     int32
 	FragShader   string
 }
 
-type Scene struct {
+// A scene encupsulates OpenGL rendering procedures of a shader runner.
+type scene struct {
 	vbo          uint32
 	vao          uint32
 	canvasFB     [2]uint32
@@ -50,20 +55,25 @@ type Scene struct {
 	userProgram  uint32
 	viewProgram  uint32
 	frame        int
-	canvasSize   Size
-	viewportSize Size
+	canvasSize   size
+	viewportSize size
 }
 
-func NewScene(c SceneConfig) (*Scene, error) {
-	s := &Scene{
+// newScene allocates OpenGL resources and builds shader programs for a scene
+// described by given config.
+func newScene(c sceneConfig) (*scene, error) {
+	s := &scene{
 		canvasSize:   c.CanvasSize,
 		viewportSize: c.ViewportSize,
 	}
 
-	cleanup := func() {
+	// Cleanup on failure. OpenGL's deallocation functions are specified to do
+	// nothing for zero-valued resource names. So, it's safe to unconditionally
+	// free resources that may have not been created.
+	clean := func() {
 		s.Close()
 	}
-	defer (func() { cleanup() })()
+	defer (func() { clean() })()
 
 	if err := s.initVertex(c); err != nil {
 		return nil, err
@@ -77,15 +87,16 @@ func NewScene(c SceneConfig) (*Scene, error) {
 		return nil, err
 	}
 
-	cleanup = func() {}
+	// Success. Do not clean.
+	clean = func() {}
 
 	return s, nil
 }
 
-func (s *Scene) initVertex(c SceneConfig) error {
-	quadCoords := []float32{
-		0, 0, 1, 0, 0, 1, 1, 1,
-	}
+// initVertex creates vertex buffer and associated vertex array for the scene.
+func (s *scene) initVertex(c sceneConfig) error {
+	// 2D vertices of a triangle strip forming a quad on the xy plane.
+	quadCoords := []float32{0, 0, 1, 0, 0, 1, 1, 1}
 
 	gl.GenBuffers(1, &s.vbo)
 	if s.vbo == 0 {
@@ -108,9 +119,14 @@ func (s *Scene) initVertex(c SceneConfig) error {
 	return nil
 }
 
-func (s *Scene) initFramebuffer(c SceneConfig) error {
+// initFramebuffer creates framebuffers and their backing textures to store
+// rendered output from user shader.
+func (s *scene) initFramebuffer(c sceneConfig) error {
 	gl.ActiveTexture(gl.TEXTURE0)
 
+	// Create multiple textures and buffers to store previous frame and current
+	// frame. This allows user shader to sample pixels from previous frame and
+	// render stateful animation (like Conway's game of life).
 	gl.GenTextures(int32(len(s.canvasTex)), &s.canvasTex[0])
 	gl.GenFramebuffers(int32(len(s.canvasFB)), &s.canvasFB[0])
 
@@ -150,82 +166,84 @@ func (s *Scene) initFramebuffer(c SceneConfig) error {
 	return nil
 }
 
-func (s *Scene) initProgram(c SceneConfig) error {
+// initProgram creates shader programs.
+func (s *scene) initProgram(c sceneConfig) error {
 	var err error
+	attribs := []string{"vertex"}
+	colors := []string{"fragColor"}
 
-	s.userProgram, err = newProgram(
-		vertSource, c.FragShader, []string{"vertex"}, []string{"fragColor"},
-	)
+	s.userProgram, err = newProgram(vertSource, c.FragShader, attribs, colors)
 	if err != nil {
 		return err
 	}
 
-	s.viewProgram, err = newProgram(
-		vertSource, viewSource, []string{"vertex"}, []string{"fragColor"},
-	)
+	s.viewProgram, err = newProgram(vertSource, viewSource, attribs, colors)
 	if err != nil {
 		return err
 	}
 
-	// Uniforms
+	// Set uniforms that do not change.
+	resolutionLoc := gl.GetUniformLocation(s.userProgram, gl.Str("resolution\x00"))
+	samplerLocUser := gl.GetUniformLocation(s.userProgram, gl.Str("sampler\x00"))
 	gl.UseProgram(s.userProgram)
-	gl.Uniform2f(
-		gl.GetUniformLocation(s.userProgram, gl.Str("resolution\x00")),
-		float32(c.CanvasSize.X),
-		float32(c.CanvasSize.Y),
-	)
-	gl.Uniform1i(
-		gl.GetUniformLocation(s.userProgram, gl.Str("sampler\x00")),
-		0,
-	)
+	gl.Uniform2f(resolutionLoc, float32(c.CanvasSize.X), float32(c.CanvasSize.Y))
+	gl.Uniform1i(samplerLocUser, 0)
 
+	samplerLocView := gl.GetUniformLocation(s.viewProgram, gl.Str("sampler\x00"))
 	gl.UseProgram(s.viewProgram)
-	gl.Uniform1i(
-		gl.GetUniformLocation(s.viewProgram, gl.Str("sampler\x00")),
-		0,
-	)
+	gl.Uniform1i(samplerLocView, 0)
 
 	return nil
 }
 
-func(s *Scene) SetViewport(w, h int) {
+// SetViewport updates the size of the viewport that displays the scene.
+func (s *scene) SetViewport(w, h int) {
 	s.viewportSize.X = w
 	s.viewportSize.Y = h
 }
 
-func (s *Scene) SetMouse(x, y float64) {
+// SetMouse passes mouse position to the shader. The position must be in the
+// canvas coordinate system.
+func (s *scene) SetMouse(x, y float64) {
+	mouseLoc := gl.GetUniformLocation(s.userProgram, gl.Str("mouse\x00"))
 	gl.UseProgram(s.userProgram)
-	gl.Uniform2f(
-		gl.GetUniformLocation(s.userProgram, gl.Str("mouse\x00")),
-		float32(x),
-		float32(y),
-	)
+	gl.Uniform2f(mouseLoc, float32(x), float32(y))
 }
 
-func (s *Scene) SetTime(t float64) {
+// SetTime passes program running time to the shader.
+func (s *scene) SetTime(t float64) {
+	timeLoc := gl.GetUniformLocation(s.userProgram, gl.Str("time\x00"))
 	gl.UseProgram(s.userProgram)
-	gl.Uniform1f(
-		gl.GetUniformLocation(s.userProgram, gl.Str("time\x00")),
-		float32(t),
-	)
+	gl.Uniform1f(timeLoc, float32(t))
 }
 
-func (s *Scene) Render() {
-	// Run user's fragment shader
+// Render renders the scene to the current context.
+func (s *scene) Render() {
+	// The shader sees previous frame via prevTex texture and renders the
+	// current frame to curTex texture through curFB framebuffer.
+	prevTex := s.canvasTex[s.frame%2]
+	curTex := s.canvasTex[(s.frame+1)%2]
+	curFB := s.canvasFB[(s.frame+1)%2]
+
+	// User shader sees the number of frames that have been rendered.
+	frameLoc := gl.GetUniformLocation(s.userProgram, gl.Str("frame\x00"))
+	gl.UseProgram(s.userProgram)
+	gl.Uniform1i(frameLoc, int32(s.frame))
+
+	gl.ActiveTexture(gl.TEXTURE0)
+
+	// Let user shader render to framebuffer.
 	gl.Viewport(0, 0, int32(s.canvasSize.X), int32(s.canvasSize.Y))
 	gl.UseProgram(s.userProgram)
-	gl.Uniform1i(
-		gl.GetUniformLocation(s.userProgram, gl.Str("frame\x00")),
-		int32(s.frame),
-	)
-	gl.BindTexture(gl.TEXTURE_2D, s.canvasTex[s.frame%2])
-	gl.BindFramebuffer(gl.FRAMEBUFFER, s.canvasFB[(s.frame+1)%2])
+	gl.BindTexture(gl.TEXTURE_2D, prevTex)
+	gl.BindFramebuffer(gl.FRAMEBUFFER, curFB)
 	gl.BindVertexArray(s.vao)
 	gl.DrawArrays(gl.TRIANGLE_STRIP, 0, 4)
 
+	// Scale and render the result to viewport.
 	gl.Viewport(0, 0, int32(s.viewportSize.X), int32(s.viewportSize.Y))
 	gl.UseProgram(s.viewProgram)
-	gl.BindTexture(gl.TEXTURE_2D, s.canvasTex[(s.frame+1)%2])
+	gl.BindTexture(gl.TEXTURE_2D, curTex)
 	gl.BindFramebuffer(gl.FRAMEBUFFER, 0)
 	gl.BindVertexArray(s.vao)
 	gl.DrawArrays(gl.TRIANGLE_STRIP, 0, 4)
@@ -233,7 +251,8 @@ func (s *Scene) Render() {
 	s.frame++
 }
 
-func (s *Scene) Close() {
+// Close disposes resources allocated for the scene.
+func (s *scene) Close() {
 	gl.DeleteBuffers(1, &s.vbo)
 	gl.DeleteVertexArrays(1, &s.vao)
 	gl.DeleteFramebuffers(int32(len(s.canvasFB)), &s.canvasFB[0])

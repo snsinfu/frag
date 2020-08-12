@@ -6,6 +6,7 @@ import (
 	"github.com/go-gl/gl/v3.3-core/gl"
 )
 
+// shaderError represents an error while compiling or linking shader program.
 type shaderError struct {
 	Message string
 	Log     string
@@ -20,12 +21,20 @@ func (err *shaderError) Error() string {
 	return msg
 }
 
+// newProgram builds a program consisting of a vertex shader and a fragment
+// shader.
+//
+// `attribs` specifies the default names of input attributes feeded to the
+// vertex shader, starting from location=0. `colors` similarly specifies the
+// default names of the outputs from the fragment shader, starting from
+// location=0.
 func newProgram(vert, frag string, attribs, colors []string) (uint32, error) {
 	program := gl.CreateProgram()
 	if program == 0 {
 		return 0, errors.New("failed to create shader program")
 	}
 
+	// Cleanup on failure.
 	clear := func() {
 		gl.DeleteProgram(program)
 	}
@@ -74,17 +83,20 @@ func newProgram(vert, frag string, attribs, colors []string) (uint32, error) {
 	gl.DetachShader(program, vertShader)
 	gl.DetachShader(program, fragShader)
 
+	// Success. Do not cleanup.
 	clear = func() {}
 
 	return program, nil
 }
 
+// newShader compiles a shader.
 func newShader(xtype uint32, source string) (uint32, error) {
 	shader := gl.CreateShader(xtype)
 	if shader == 0 {
 		return 0, errors.New("failed to create shader")
 	}
 
+	// Cleanup on failure.
 	clear := func() {
 		gl.DeleteShader(shader)
 	}
@@ -112,6 +124,7 @@ func newShader(xtype uint32, source string) (uint32, error) {
 		return 0, err
 	}
 
+	// Success. Do not cleanup.
 	clear = func() {}
 
 	return shader, nil

@@ -52,16 +52,19 @@ func (f *Frag) Run() error {
 	}
 
 	window.MakeContextCurrent()
+
+	// Framebuffer may be larger than window size in HiDPI environment. OpenGL
+	// code must use this framebuffer size.
 	viewportWidth, viewportHeight := window.GetFramebufferSize()
 
-	// Set up demo scene
+	// Set up demo scene.
 	if err := gl.Init(); err != nil {
 		return err
 	}
 
-	scene, err := NewScene(SceneConfig{
-		CanvasSize:   Size{f.Width, f.Height},
-		ViewportSize: Size{viewportWidth, viewportHeight},
+	scene, err := newScene(sceneConfig{
+		CanvasSize:   size{f.Width, f.Height},
+		ViewportSize: size{viewportWidth, viewportHeight},
 		WrapMode:     f.WrapMode,
 		FragShader:   f.Source,
 	})
@@ -70,8 +73,7 @@ func (f *Frag) Run() error {
 	}
 	defer scene.Close()
 
-	// Main loop
-
+	// Main loop.
 	window.SetKeyCallback(func(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey) {
 		if key == glfw.KeyEscape && action == glfw.Press {
 			w.SetShouldClose(true)
@@ -91,7 +93,10 @@ func (f *Frag) Run() error {
 			viewportWidth, viewportHeight = window.GetFramebufferSize()
 			windowWidth, windowHeight := window.GetSize()
 
-			// Need to flip y coordinates.
+			// We want mouse position in the canvas coordinates. Since OpenGL
+			// uses lower-left origin, we need to flip the y coordinate. Also,
+			// since the canvas is scaled to fit to the window, the coordinate
+			// values need to be scaled accordingly.
 			mouseX, mouseY := window.GetCursorPos()
 			mouseY = float64(windowHeight) - mouseY
 			mouseX *= float64(f.Width) / float64(windowWidth)
