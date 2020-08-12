@@ -12,17 +12,18 @@ out vec4 fragColor;
 
 void main() {
     // Game of life
-    ivec2 xy = ivec2(gl_FragCoord.xy);
-    float cell = texelFetch(sampler, xy, 0).a;
+    vec2 pos = gl_FragCoord.xy / resolution;
+    vec2 texel = 1 / resolution;
+    float cell = texture(sampler, pos).a;
     float neighbors =
-        texelFetch(sampler, xy + ivec2(-1, -1), 0).a +
-        texelFetch(sampler, xy + ivec2(-1,  0), 0).a +
-        texelFetch(sampler, xy + ivec2(-1, +1), 0).a +
-        texelFetch(sampler, xy + ivec2( 0, -1), 0).a +
-        texelFetch(sampler, xy + ivec2( 0, +1), 0).a +
-        texelFetch(sampler, xy + ivec2(+1, -1), 0).a +
-        texelFetch(sampler, xy + ivec2(+1,  0), 0).a +
-        texelFetch(sampler, xy + ivec2(+1, +1), 0).a;
+        texture(sampler, pos + texel * vec2(-1, -1)).a +
+        texture(sampler, pos + texel * vec2(-1,  0)).a +
+        texture(sampler, pos + texel * vec2(-1, +1)).a +
+        texture(sampler, pos + texel * vec2( 0, -1)).a +
+        texture(sampler, pos + texel * vec2( 0, +1)).a +
+        texture(sampler, pos + texel * vec2(+1, -1)).a +
+        texture(sampler, pos + texel * vec2(+1,  0)).a +
+        texture(sampler, pos + texel * vec2(+1, +1)).a;
 
     neighbors += 0.1;
 
@@ -35,9 +36,9 @@ void main() {
     float hit = step(0.0, 1.5 - max(delta.x, delta.y));
     next = max(next, hit);
 
-    // Random-ish generation at the bottom
-    float t = 2.0 * gl_FragCoord.x;
-    float gen = step(0.0, sin(time + t * t));
+    // Random-ish generation on the bottom edge.
+    float bias = mod(100 * pos.x * pos.x, 100);
+    float gen = step(0.0, sin(time + bias));
     gen *= step(-1.0, -gl_FragCoord.y);
     next = max(next, gen);
 
