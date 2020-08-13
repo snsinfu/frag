@@ -67,7 +67,43 @@ void main() {
 }
 ```
 
-Accepted pragmas:
+
+### Uniforms
+
+These `uniform`s are provided:
+
+| type      | name       | description                                  |
+|-----------|------------|----------------------------------------------|
+| vec2      | resolution | Size of canvas in pixels.                    |
+| vec2      | mouse      | Mouse position in pixels.                    |
+| float     | time       | Number of seconds from program start.        |
+| int       | frame      | Incremented on each frame. Starts from zero. |
+| sampler2D | sampler    | Texture holding the previous frame.          |
+
+`texture(sampler, texCoord)` gives the color of the pixel in the previous frame.
+To get neighboring pixels, use `texCoord + vec2(+1, -1) / resolution` etc. for
+the texture coordinates.
+
+
+### Attributes
+
+Input attribute:
+
+| type      | name         | description                                  |
+|-----------|--------------|----------------------------------------------|
+| vec2      | texCoord     | Normalized texture coordinates of the pixel. |
+
+Fragment output:
+
+| type      | name       | description                                  |
+|-----------|------------|----------------------------------------------|
+| vec4      | fragColor  | Color of the pixel.                          |
+
+The `fragColor.a` component is not used for rendering. The shader program may
+use this component for whatever purpose.
+
+
+### Pragmas
 
 | pragma                       | description                                |
 |:-----------------------------|:-------------------------------------------|
