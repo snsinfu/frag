@@ -8,5 +8,5 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-go@v2
-      - run: sudo apt-get install -qy libglfw3-dev libgl1-mesa-dev
+      - run: sudo apt-get install -qy libglfw3-dev libgl1-mesa-dev xorg-dev
       - run: go build -o frag ./main
