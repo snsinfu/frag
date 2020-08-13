@@ -10,11 +10,7 @@ in vec2 texCoord;
 out vec4 fragColor;
 
 void main() {
-    float x = 0.5 + 0.5 * sin(2.0 * texCoord.s + time);
-    float y = 0.5 + 0.5 * sin(2.0 * texCoord.t + time);
-    float z = 0.5 + 0.5 * cos(2.0 * texCoord.t + time);
-
-    fragColor.r = 0.5 + 0.5 * x;
-    fragColor.g = 0.5 + 0.5 * y;
-    fragColor.b = 0.5 + 0.5 * z;
+    fragColor.r = 0.75 + 0.25 * sin(2.0 * texCoord.s + time);
+    fragColor.g = 0.75 + 0.25 * sin(2.0 * texCoord.t + time);
+    fragColor.b = 0.75 + 0.25 * cos(2.0 * texCoord.t + time);
 }

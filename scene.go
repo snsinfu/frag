@@ -29,7 +29,7 @@ import (
 //     | Viewport |
 //     +----------+
 //
-// The `scene` struct in this source file encupsulates this architecture.
+// The `scene` struct in this source file encapsulates this architecture.
 
 // Vertex shader for rendering a 2D quad to the whole viewport. This shader is
 // used in both the user program and the view program.
@@ -41,7 +41,7 @@ out vec2 texCoord;
 
 void main() {
 	texCoord = vertex;
-	gl_Position = vec4(-1.0 + 2.0 * vertex, 0, 1);
+	gl_Position = vec4(-1 + 2 * vertex, 0, 1);
 }
 `
 
@@ -73,7 +73,7 @@ type sceneConfig struct {
 	FragShader   string
 }
 
-// A scene encupsulates rendering procedure of user program and view program.
+// A scene encapsulates rendering procedure of user program and view program.
 type scene struct {
 	vbo          uint32
 	vao          uint32
