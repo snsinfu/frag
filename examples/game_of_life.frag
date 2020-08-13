@@ -8,32 +8,29 @@ uniform sampler2D sampler;
 uniform vec2 resolution;
 uniform vec2 mouse;
 uniform float time;
+in vec2 texCoord;
 out vec4 fragColor;
 
 void main() {
     // The rule of the Game of Life.
-    vec2 pos = gl_FragCoord.xy / resolution;
     vec2 texel = 1 / resolution;
-    float cell = texture(sampler, pos).a;
-    float neighbors =
-        texture(sampler, pos + texel * vec2(-1, -1)).a +
-        texture(sampler, pos + texel * vec2(-1,  0)).a +
-        texture(sampler, pos + texel * vec2(-1, +1)).a +
-        texture(sampler, pos + texel * vec2( 0, -1)).a +
-        texture(sampler, pos + texel * vec2( 0, +1)).a +
-        texture(sampler, pos + texel * vec2(+1, -1)).a +
-        texture(sampler, pos + texel * vec2(+1,  0)).a +
-        texture(sampler, pos + texel * vec2(+1, +1)).a;
-
-    // This may be helpful to mitigate bad floating-point errors near the
-    // edges of the step functions below.
-    neighbors += 0.1;
+    float cell = texture(sampler, texCoord).a;
+    float neighbors = round(
+        texture(sampler, texCoord + texel * vec2(-1, -1)).a +
+        texture(sampler, texCoord + texel * vec2(-1,  0)).a +
+        texture(sampler, texCoord + texel * vec2(-1, +1)).a +
+        texture(sampler, texCoord + texel * vec2( 0, -1)).a +
+        texture(sampler, texCoord + texel * vec2( 0, +1)).a +
+        texture(sampler, texCoord + texel * vec2(+1, -1)).a +
+        texture(sampler, texCoord + texel * vec2(+1,  0)).a +
+        texture(sampler, texCoord + texel * vec2(+1, +1)).a
+    );
 
     float alive = step(2, neighbors) - step(4, neighbors);
     float birth = step(3, neighbors) - step(4, neighbors);
     float next = mix(birth, alive, cell);
 
-    // Mouse pointer
+    // Mouse pointer generates life.
     vec2 delta = abs(gl_FragCoord.xy - mouse);
     float hit = step(0, 1.5 - max(delta.x, delta.y));
     next = max(next, hit);
