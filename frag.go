@@ -11,6 +11,7 @@ type Frag struct {
 	Scale    float64
 	FPS      float64
 	WrapMode int32
+	PixType  uint32
 	Filename string
 	Source   string
 	NoResize bool
@@ -20,6 +21,11 @@ const (
 	WrapRepeat = gl.REPEAT
 	WrapMirror = gl.MIRRORED_REPEAT
 	WrapClamp  = gl.CLAMP_TO_EDGE
+)
+
+const (
+	Pix32 = gl.UNSIGNED_BYTE
+	Pix64 = gl.UNSIGNED_SHORT
 )
 
 const (
@@ -69,6 +75,7 @@ func (f *Frag) Run() error {
 		CanvasSize:   size{f.Width, f.Height},
 		ViewportSize: size{viewportWidth, viewportHeight},
 		WrapMode:     f.WrapMode,
+		PixType:      f.PixType,
 		FragShader:   f.Source,
 	})
 	if err != nil {

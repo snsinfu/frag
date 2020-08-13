@@ -14,6 +14,7 @@ var (
 	errScale        = errors.New("invalid scale")
 	errFPS          = errors.New("invalid FPS")
 	errWrapMode     = errors.New("invalid wrap mode")
+	errPixType      = errors.New("invalid bit depth")
 )
 
 func parseCanvas(s string) (int, int, error) {
@@ -87,4 +88,16 @@ func parseWrapMode(s string) (int32, error) {
 	}
 
 	return 0, errWrapMode
+}
+
+func parsePixType(s string) (uint32, error) {
+	switch s {
+	case "32":
+		return frag.Pix32, nil
+
+	case "64":
+		return frag.Pix64, nil
+	}
+
+	return 0, errPixType
 }

@@ -20,6 +20,7 @@ options:
   -x, --scale <scale>  Display scale of the canvas
   -f, --fps <fps>      Maximum number of frames per second
   -w, --wrap <mode>    Wrap mode (repeat or mirror)
+  -b, --bits <bits>    Bit depth of pixel (32 or 64)
   --noresize           Do not allow resizing window
   -h, --help           Print usage message and exit
 `
@@ -30,6 +31,7 @@ var defaultFrag = frag.Frag{
 	Scale:    1.0,
 	FPS:      60.0,
 	WrapMode: frag.WrapRepeat,
+	PixType:  frag.Pix32,
 }
 
 func init() {
@@ -90,6 +92,15 @@ func run() error {
 		}
 
 		frag.Scale = scale
+	}
+
+	if bitsSpec, ok := opts["--bits"].(string); ok {
+		pixType, err := parsePixType(bitsSpec)
+		if err != nil {
+			return err
+		}
+
+		frag.PixType = pixType
 	}
 
 	if fpsSpec, ok := opts["--fps"].(string); ok {

@@ -111,6 +111,7 @@ use this component for whatever purpose.
 | frag:scale  _scale_          | Canvas is scaled on screen by this factor. |
 | frag:fps    _fps_            | Maximum frames per second.                 |
 | frag:wrap   _mode_           | Wrapping mode when sampling from canvas. `repeat`, `mirror` or `clamp`. |
+| frag:bits   _bits_           | Bit depth of pixel. 32 or 64.              |
 
 The canvas size etc. can also be set via command-line options:
 
