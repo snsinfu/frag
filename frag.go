@@ -92,7 +92,7 @@ func (f *Frag) Run() error {
 		if delay*f.FPS >= 1 {
 			prevTime = curTime
 			viewportWidth, viewportHeight = window.GetFramebufferSize()
-			windowWidth, windowHeight := window.GetSize()
+			windowWidth, windowHeight = window.GetSize()
 
 			// We want mouse position in the canvas coordinates. Since OpenGL
 			// uses lower-left origin, we need to flip the y coordinate. Also,
