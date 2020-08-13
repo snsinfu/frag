@@ -28,6 +28,9 @@ const (
 )
 
 func (f *Frag) Run() error {
+	// This function deals with user inputs and window maintenance. Rendering
+	// works are done by `scene` structure.
+
 	if err := glfw.Init(); err != nil {
 		return err
 	}
@@ -54,11 +57,10 @@ func (f *Frag) Run() error {
 
 	window.MakeContextCurrent()
 
-	// Framebuffer may be larger than window size in HiDPI environment. OpenGL
-	// code must use this framebuffer size.
+	// Framebuffer may be larger than window size in HiDPI environment. This is
+	// the actual size of the OpenGL viewport.
 	viewportWidth, viewportHeight := window.GetFramebufferSize()
 
-	// Set up demo scene.
 	if err := gl.Init(); err != nil {
 		return err
 	}

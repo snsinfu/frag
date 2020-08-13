@@ -25,9 +25,9 @@ func (err *shaderError) Error() string {
 // shader.
 //
 // `attribs` specifies the default names of input attributes feeded to the
-// vertex shader, starting from location=0. `colors` similarly specifies the
+// vertex shader, starting from location = 0. `colors` similarly specifies the
 // default names of the outputs from the fragment shader, starting from
-// location=0.
+// location = 0.
 func newProgram(vert, frag string, attribs, colors []string) (uint32, error) {
 	program := gl.CreateProgram()
 	if program == 0 {

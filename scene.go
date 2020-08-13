@@ -6,7 +6,33 @@ import (
 	"github.com/go-gl/gl/v3.3-core/gl"
 )
 
-// Vertex shader for rendering a 2D quad to the whole viewport.
+// User-supplied fragment shader renders a scene to "canvas" framebuffer/texture,
+// possibly using pixel values of previously rendered canvas texture. The result
+// is then scaled and displayed on the viewport (the screen) by our view program.
+//
+//   +--------------+   sample   +--------------+
+//   | User program | <--------- | Prev. canvas |
+//   +--------------+            +--------------+
+//          | render                    ^
+//          V                           |
+// +------------------+                 |
+// | "Canvas" texture | ----------------+
+// +------------------+
+//          | sample
+//          V
+//   +--------------+
+//   | View program |
+//   +--------------+
+//          | render
+//          V
+//     +----------+
+//     | Viewport |
+//     +----------+
+//
+// The `scene` struct in this source file encupsulates this architecture.
+
+// Vertex shader for rendering a 2D quad to the whole viewport. This shader is
+// used in both the user program and the view program.
 const vertSource = `
 #version 330
 
@@ -19,7 +45,8 @@ void main() {
 }
 `
 
-// Fragment shader for displaying texture on a quad.
+// Fragment shader for displaying texture on a quad. This shader is used in the
+// view program.
 const viewSource = `
 #version 330
 
@@ -46,7 +73,7 @@ type sceneConfig struct {
 	FragShader   string
 }
 
-// A scene encupsulates OpenGL rendering procedures of a shader runner.
+// A scene encupsulates rendering procedure of user program and view program.
 type scene struct {
 	vbo          uint32
 	vao          uint32
@@ -59,8 +86,8 @@ type scene struct {
 	viewportSize size
 }
 
-// newScene allocates OpenGL resources and builds shader programs for a scene
-// described by given config.
+// newScene allocates OpenGL resources and builds user and view programs for a
+// scene described by given config.
 func newScene(c sceneConfig) (*scene, error) {
 	s := &scene{
 		canvasSize:   c.CanvasSize,
@@ -69,7 +96,7 @@ func newScene(c sceneConfig) (*scene, error) {
 
 	// Cleanup on failure. OpenGL's deallocation functions are specified to do
 	// nothing for zero-valued resource names. So, it's safe to unconditionally
-	// free resources that may have not been created.
+	// free resources that may have not been created (thus zero-valued).
 	clean := func() {
 		s.Close()
 	}
@@ -120,13 +147,15 @@ func (s *scene) initVertex(c sceneConfig) error {
 }
 
 // initFramebuffer creates framebuffers and their backing textures to store
-// rendered output from user shader.
+// rendered output from user program.
 func (s *scene) initFramebuffer(c sceneConfig) error {
 	gl.ActiveTexture(gl.TEXTURE0)
 
-	// Create multiple textures and buffers to store previous frame and current
-	// frame. This allows user shader to sample pixels from previous frame and
-	// render stateful animation (like Conway's game of life).
+	// Here, we create two pairs of textures and buffers as we want to use one
+	// for previous frame and another one for current frame. We switch the two
+	// textures/framebuffers in each frame. This allows the user program to
+	// sample pixels from previous frame and render stateful animation (like
+	// Conway's game of life).
 	gl.GenTextures(int32(len(s.canvasTex)), &s.canvasTex[0])
 	gl.GenFramebuffers(int32(len(s.canvasFB)), &s.canvasFB[0])
 
@@ -166,9 +195,12 @@ func (s *scene) initFramebuffer(c sceneConfig) error {
 	return nil
 }
 
-// initProgram creates shader programs.
+// initProgram creates user program and view program.
 func (s *scene) initProgram(c sceneConfig) error {
 	var err error
+
+	// Standard vertex attribute name and fragment output name. User can use
+	// other names by qualifying variable by `layout(location = 0)`.
 	attribs := []string{"vertex"}
 	colors := []string{"fragColor"}
 
@@ -196,7 +228,7 @@ func (s *scene) initProgram(c sceneConfig) error {
 	return nil
 }
 
-// SetViewport updates the size of the viewport that displays the scene.
+// SetViewport updates the size of the viewport that actually displays the scene.
 func (s *scene) SetViewport(w, h int) {
 	s.viewportSize.X = w
 	s.viewportSize.Y = h
@@ -225,14 +257,14 @@ func (s *scene) Render() {
 	curTex := s.canvasTex[(s.frame+1)%2]
 	curFB := s.canvasFB[(s.frame+1)%2]
 
-	// User shader sees the number of frames that have been rendered.
+	// User program sees the number of frames that have been rendered.
 	frameLoc := gl.GetUniformLocation(s.userProgram, gl.Str("frame\x00"))
 	gl.UseProgram(s.userProgram)
 	gl.Uniform1i(frameLoc, int32(s.frame))
 
 	gl.ActiveTexture(gl.TEXTURE0)
 
-	// Let user shader render to framebuffer.
+	// Let user program render to framebuffer.
 	gl.Viewport(0, 0, int32(s.canvasSize.X), int32(s.canvasSize.Y))
 	gl.UseProgram(s.userProgram)
 	gl.BindTexture(gl.TEXTURE_2D, prevTex)
