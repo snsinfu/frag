@@ -42,5 +42,11 @@ void main() {
     float clock = center * code;
     next = max(next, clock);
 
-    fragColor = vec4(next, next, next, next);
+    // Different pixels get different colors.
+    vec3 color;
+    color.r = 0.5 + 0.5 * texCoord.s;
+    color.g = 1.0 - 0.5 * texCoord.t;
+    color.b = 0.5 + 0.5 * texCoord.t;
+
+    fragColor = vec4(next * color, next);
 }
