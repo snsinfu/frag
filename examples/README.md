@@ -4,6 +4,7 @@
 - [Game of Life](#game-of-life)
 - [BZ reaction](#bz-reaction)
 - [BZX](#bzx)
+- [Hamilton-Jacobi](#hamilton-jacobi)
 
 
 ## Gradient
@@ -33,3 +34,12 @@ psychedelic consequence!
 Modification of BZ reaction. This one tends to show propagating diagonal lines.
 
 [![Screenshot](screenshots/bzx.png)](./bzx.frag)
+
+
+## Hamilton-Jacobi
+
+A demo scene inspired by the Hamilton-Jacobi equation of a two-dimensional
+harmonic oscillator. The demo renders momentum field. It shows interesting
+wave patterns; these waves probably come from numerical errors though.
+
+[![Screenshot](screenshots/hamilton_jacobi.png)](./hamilton_jacobi.frag)
