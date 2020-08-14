@@ -2,6 +2,8 @@
 
 - [Gradient](#gradient)
 - [Game of Life](#game-of-life)
+- [BZ reaction](#bz-reaction)
+- [BZX](#bzx)
 
 
 ## Gradient
@@ -24,3 +26,10 @@ Belousov–Zhabotinsky reaction. Move mouse cursor on the window and see the
 psychedelic consequence!
 
 [![Screenshot](screenshots/bz_reaction.png)](./bz_reaction.frag)
+
+
+## BZX
+
+Modification of BZ reaction. This one tends to show propagating diagonal lines.
+
+[![Screenshot](screenshots/bzx.png)](./bzx.frag)
