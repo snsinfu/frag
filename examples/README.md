@@ -69,4 +69,4 @@ channels to store vector and scalar fields.
 
 Contour plot of a time-and-mouse-dependent implicit function.
 
-[![Screenshot](screenshots/dot.png)](./dot.frag)
+[![Screenshot](screenshots/dots.png)](./dots.frag)
