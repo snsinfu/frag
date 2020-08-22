@@ -7,6 +7,7 @@
 - [Hamilton-Jacobi](#hamilton-jacobi)
 - [Reaction stream](#reaction-stream)
 - [Flux](#flux)
+- [Dots](#dots)
 
 
 ## Gradient
@@ -62,3 +63,10 @@ of a field equation inspired by the continuity equation. This shader uses RGB
 channels to store vector and scalar fields.
 
 [![Screenshot](screenshots/flux.png)](./flux.frag)
+
+
+## Dots
+
+Contour plot of a time-and-mouse-dependent implicit function.
+
+[![Screenshot](screenshots/dot.png)](./dot.frag)
