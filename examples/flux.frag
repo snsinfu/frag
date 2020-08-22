@@ -1,7 +1,6 @@
 #version 330
 
 #pragma frag:canvas 500 300
-#pragma frag:scale 2
 #pragma frag:wrap mirror
 #pragma frag:fps 60
 
