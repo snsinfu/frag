@@ -8,6 +8,7 @@
 - [Reaction stream](#reaction-stream)
 - [Flux](#flux)
 - [Dots](#dots)
+- [Plot](#plot)
 
 
 ## Gradient
@@ -70,3 +71,10 @@ channels to store vector and scalar fields.
 Contour plot of a time-and-mouse-dependent implicit function.
 
 [![Screenshot](screenshots/dots.png)](./dots.frag)
+
+
+## Plot
+
+Plotting a function. The shader needs to transform texture coordinates to graph
+coordinates to evaluate the function. It also needs to determine if the fragment
+pixel is on the function graph.
