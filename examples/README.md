@@ -9,6 +9,7 @@
 - [Flux](#flux)
 - [Dots](#dots)
 - [Plot](#plot)
+- [Two body](#two-body)
 
 
 ## Gradient
@@ -78,3 +79,9 @@ Contour plot of a time-and-mouse-dependent implicit function.
 Plotting a function. The shader needs to transform texture coordinates to graph
 coordinates to evaluate the function. It also needs to determine if the fragment
 pixel is on the function graph.
+
+
+## Two body
+
+Two-body simulation of gravitational particles. This shader abuses some pixels
+for storing simulation state (not graphical output).
