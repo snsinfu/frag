@@ -80,6 +80,8 @@ Plotting a function. The shader needs to transform texture coordinates to graph
 coordinates to evaluate the function. It also needs to determine if the fragment
 pixel is on the function graph.
 
+[![Plot](screenshots/plot.png)](./plot.frag)
+
 
 ## Two body
 
