@@ -86,4 +86,7 @@ pixel is on the function graph.
 ## Two body
 
 Two-body simulation of gravitational particles. This shader abuses some pixels
-for storing simulation state (not graphical output).
+for storing simulation state (not graphical output). You see the "state pixels"
+at the lower left edge of the scene.
+
+[![Two body](screenshots/two_body.png)](./two_body.frag)
