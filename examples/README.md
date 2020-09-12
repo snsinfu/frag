@@ -11,6 +11,7 @@
 - [Plot](#plot)
 - [Two body](#two-body)
 - [Broken Lieuville](#broken-lieuville)
+- [XOR](#xor)
 
 
 ## Gradient
@@ -100,3 +101,11 @@ solves Lieuville equations. The calculation is horribly broken due to numerical
 error and failed smoothing effort but it looks cool nevertheless.
 
 [![Broken Lieuville](screenshots/broken_lieuville.png)](./broken_lieuville.frag)
+
+
+## XOR
+
+8-state cellular automaton involving some XOR calculations. Results in localized
+oscillators that somewhat look like an electronic circuit.
+
+[![XOR](screenshots/xor.png)](./xor.frag)
