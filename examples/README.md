@@ -12,6 +12,7 @@
 - [Two body](#two-body)
 - [Broken Lieuville](#broken-lieuville)
 - [XOR](#xor)
+- [Slime](#slime)
 
 
 ## Gradient
@@ -109,3 +110,12 @@ error and failed smoothing effort but it looks cool nevertheless.
 oscillators that somewhat look like an electronic circuit.
 
 [![XOR](screenshots/xor.png)](./xor.frag)
+
+
+## Slime
+
+Slime-ish cellular automaton. A death rule prevents crowding of live cells, thus
+creating thin loop structures. The shader code also uses a Feistel cipher for
+random initialization.
+
+[![Slime](screenshots/slime.png)](./slime.frag)
