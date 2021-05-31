@@ -49,6 +49,13 @@ func parsePragma(source string, frag *frag.Frag) error {
 			}
 			frag.WrapMode = mode
 
+		case "bits":
+			pixType, err := parsePixType(value)
+			if err != nil {
+				return err
+			}
+			frag.PixType = pixType
+
 		default:
 		}
 	}

@@ -70,6 +70,7 @@ type sceneConfig struct {
 	CanvasSize   size
 	ViewportSize size
 	WrapMode     int32
+	PixType      uint32
 	FragShader   string
 }
 
@@ -170,7 +171,7 @@ func (s *scene) initFramebuffer(c sceneConfig) error {
 			int32(c.CanvasSize.Y),
 			0,
 			gl.RGBA,
-			gl.UNSIGNED_BYTE,
+			c.PixType,
 			nil,
 		)
 
