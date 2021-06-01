@@ -13,6 +13,7 @@
 - [Broken Lieuville](#broken-lieuville)
 - [XOR](#xor)
 - [Slime](#slime)
+- [Spinodal decomposition](#spinodal-decomposition)
 
 
 ## Gradient
@@ -119,3 +120,12 @@ creating thin loop structures. The shader code also uses a Feistel cipher for
 random initialization.
 
 [![Slime](screenshots/slime.png)](./slime.frag)
+
+
+## Spinodal decomposition
+
+Spinodal decomposition of a binary mixture. The shader numerically solves the
+Cahn-Hillard equation for the Flory-Huggins chemical potential. The blobby
+structure grows very slowly as the demo progresses.
+
+[![Spinodal decomposition](screenshots/spinodal_decomposition.png)](./spinodal_decomposition.frag)
